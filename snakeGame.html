@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Hra: Had</title>
+	<style type="text/css" media="screen">
+		content{
+			margin: 0 auto;
+			display: block;
+			width: 500px;
+		}
+		canvas{
+			border: 1px solid black; 
+		}
+	</style>
+</head>
+<body>
+	<content>
+		<h1>Hra: had</h1>
+		<canvas id="myCanvas" width="500" height="500">
+			
+		</canvas>
+	</content>
+	<script type="text/javascript" >
+		var canvas = document.getElementById("myCanvas");
+		var ctx = canvas.getContext("2d");
+
+		class Point{
+			constructor(x, y){
+				this.x = x;
+				this.y = y; 
+			}
+		}
+
+		var snakeBody = [];
+		var move = "down";
+		var score = 0;
+		var fruid = null;
+		var canMove;
+		var newSnakeTail = null;
+
+		var nowDate = new Date();
+
+		createSnake();
+
+		function gameloop(){
+			if(Date.now() > (nowDate.getTime() + 150)){
+				nowDate = new Date();
+
+				moveSnake();
+
+				checkCollision();
+				fruidCollision();
+
+				drawBorder();
+				drawFruid();
+				drawSnake();
+				drawScore();
+			}
+
+			requestAnimationFrame(gameloop);
+		}
+
+		requestAnimationFrame(gameloop);
+
+		function drawScore(){
+			ctx.fillStyle = "#ffffff";
+			ctx.font = "20px Arial";
+			ctx.fillText("Score: " + (score * 10), 400, 17);
+		}
+
+		function fruidCollision(){
+			if(snakeBody[0].x == fruid.x && snakeBody[0].y == fruid.y){
+				score++;
+				generateFruid();
+				newSnakeTail = new Point(snakeBody[snakeBody.length - 1].x, snakeBody[snakeBody.length - 1].y);
+			}
+		}
+
+		document.addEventListener("keydown", (event) => {
+			if(canMove == false)
+				return;
+			
+			switch(event.key){
+				case "a":
+				case "A":
+					if(move != "right")
+						move = "left";
+					break;
+				case "d":
+				case "D":
+					if(move != "left")
+						move = "right";
+					break;
+				case "w":
+				case "W":
+					if(move != "down")
+						move = "up";
+					break;
+				case "s":
+				case "S":
+					if(move != "up")
+						move = "down";
+					break;
+			}
+
+			canMove = false;
+
+		});
+
+		function checkCollision(){
+			if(0 >= snakeBody[0].x || snakeBody[0].x >= 24 || 0 >= snakeBody[0].y || snakeBody[0].y >= 24){
+				createSnake();
+			}
+
+			for (var i = 1; i < snakeBody.length; i++) {
+				if(snakeBody[0].x == snakeBody[i].x && snakeBody[0].y == snakeBody[i].y){
+					createSnake();
+				}
+			}
+		}
+
+		function moveSnake(){
+			newPoint = new Point(snakeBody[0].x, snakeBody[0].y);
+			switch(move){
+				case "down":
+					newPoint.y++;
+					break;
+				case "up":
+					newPoint.y--;
+					break;
+				case "left":
+					newPoint.x--;
+					break;
+				case "right":
+					newPoint.x++;
+					break;
+			}
+			for (var i = snakeBody.length - 1; i > 0; i--) {
+				snakeBody[i] = snakeBody[i - 1];
+			}
+			snakeBody[0] = newPoint;
+
+			if(newSnakeTail != null){
+				snakeBody.push(newSnakeTail);
+				newSnakeTail = null;
+			}
+
+			canMove = true;
+		}
+
+		function drawFruid(){			
+			ctx.fillStyle = "#000000";
+			ctx.fillRect(fruid.x * 20, fruid.y * 20, 20, 20);
+			ctx.fillStyle = "#00ff00";
+			ctx.fillRect(fruid.x * 20 + 2, fruid.y * 20 + 2, 16, 16);
+		}
+
+		function generateFruid(){
+			var xPos, yPos, posOk;
+			do{
+				xPos = Math.floor((Math.random() * 23) + 1);
+				yPos = Math.floor((Math.random() * 23) + 1);
+				posOk = true;
+
+				snakeBody.forEach(function(item, index, array){
+					if(item.x == xPos && item.y == yPos){
+						posOk = false;
+					}
+				});
+
+			}while(!posOk);
+			fruid = new Point(xPos,yPos);
+		}
+
+		function drawSnake(){
+			snakeBody.forEach(function(item, index, array){
+				ctx.fillStyle = "#000000";
+				ctx.fillRect(item.x * 20, item.y * 20, 20, 20);
+				if(index == 0){
+					ctx.fillStyle = "#ff0000";
+				}else{
+					ctx.fillStyle = "#ff9900";					
+				}
+				ctx.fillRect(item.x * 20 + 2, item.y * 20 + 2, 16, 16);
+			});
+		}
+
+		function createSnake(){
+			snakeBody = [];
+			snakeBody.push(new Point(2,4));
+			snakeBody.push(new Point(2,3));
+			snakeBody.push(new Point(2,2));
+
+			move = "down";
+			score = 0;
+			canMove = true;
+
+			generateFruid();
+		}
+
+		function drawBorder(){
+			ctx.fillStyle = "#ffffff";
+			ctx.clearRect(0,0,500,500);
+
+			ctx.fillStyle = "#5500ff";
+			ctx.fillRect(0, 0, 20, 500);
+			ctx.fillRect(0, 0, 500, 20);
+			ctx.fillRect(480, 0, 20, 500);
+			ctx.fillRect(0, 480, 500, 20);
+		}
+
+	</script>
+</body>
+</html>
